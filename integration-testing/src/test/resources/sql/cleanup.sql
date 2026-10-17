@@ -1,0 +1,6 @@
+-- STUDENT TASK (level 5): write the SQL that empties the database after a test.
+-- Two tables: "books" and "loans". A loan points to a book, so the ORDER matters.
+-- Which table must you empty first?
+--
+--   delete from ______;
+--   delete from ______;

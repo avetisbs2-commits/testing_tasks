@@ -11,6 +11,7 @@
 
     <modules>
         <module>unit-testing</module>
+        <module>integration-testing</module>
     </modules>
 
     <properties>
