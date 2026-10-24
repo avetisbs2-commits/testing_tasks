@@ -8,9 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * LEVEL 4 - MANY RULES, MANY INPUTS.
@@ -57,28 +55,102 @@ class PasswordValidatorTest {
 
     // Each rule alone (the password breaks ONLY that rule):
     // TODO 1: a password with no digit              -> exactly ["At least one digit"]
+    @ParameterizedTest
+    @CsvSource({
+            "abcdefgG!, At least one digit",
+
+    })
+    void validate_breakingOneDigitRule_returnsOnlyThatProblem(String password, String expectedProblem) {
+        assertEquals(List.of(expectedProblem), validator.validate(password));
+    }
     // TODO 2: a password with no special character  -> exactly ["At least one special character"]
+    @Test
+    void validate_breakingSpecialCharacterRule_returnsOnlyThatProblem() {
+        assertEquals(List.of("At least one special character"), validator.validate("abcdefgG1"));
+    }
     // TODO 3: a short password that is good in every other way, like "Ab1!"
     //                                               -> exactly ["At least 8 characters"]
+    @Test
+    void validate_breakingSizeRule_returnsOnlyThatProblem() {
+        assertEquals(List.of("At least 8 characters"), validator.validate("abfgG1!"));
+    }
 
     // The length boundary:
     // TODO 4: a good password of exactly 7 characters is NOT valid
+    @Test
+    void validate_lengthOf7_returnsSizeProblem() {
+        assertEquals(List.of("At least 8 characters"), validator.validate("Ab1!cde"));
+    }
+
     // TODO 5: a good password of exactly 8 characters IS valid     <- the boundary!
+    @Test
+    void validate_lengthOf8_isValid() {
+        List<String> result = validator.validate("Ab1!cdef");
+
+        assertTrue(result.isEmpty());
+    }
 
     // null and empty:
     // TODO 6: validate(null)                        -> exactly ["Password is required"]  (nothing else)
+    @Test
+    void validate_null_returnsPasswordIsRequired() {
+        assertEquals(List.of("Password is required"), validator.validate(null));
+    }
     // TODO 7: validate("")  - what problems does the empty text have? Write all of them, in order.
+    //
     //         (tip: run the test with a wrong guess, then READ the failure message)
+    @Test
+    void validate_emptyString_returnsAllProblemsInOrder() {
+        assertEquals(List.of(
+                "At least 8 characters",
+                "At least one uppercase letter",
+                "At least one lowercase letter",
+                "At least one digit",
+                "At least one special character"
+        ), validator.validate(""));
+    }
 
     // Many problems at once:
     // TODO 8: validate("abc")                       -> 4 problems. Check the whole list and its ORDER.
+    @Test
+    void validate_passwordWithManyProblems_returnsAllProblemsInOrder() {
+        assertEquals(List.of(
+                "At least 8 characters",
+                "At least one uppercase letter",
+                "At least one digit",
+                "At least one special character"
+        ), validator.validate("abc"));
+    }
 
     // Special characters:
     // TODO 9: a space counts as a special character. Prove it with a password that has a space and no other special character.
-    // TODO 10: a @ParameterizedTest with @ValueSource: several different special characters (! @ # $ % - _ ?) are all accepted.
+    // TODO 5: a good password of exactly 8 characters IS valid     <- the boundary!
+    @Test
+    void validate_spaceAsSpecialCharacter_isValid() {
+        List<String> result = validator.validate("Ab1 cdef");
 
+        assertTrue(result.isEmpty());
+    }
+    // TODO 10: a @ParameterizedTest with @ValueSource: several different special characters (! @ # $ % - _ ?) are all accepted
+    @ParameterizedTest
+    @ValueSource(strings = {"!", "@", "#", "$", "%", "-", "_", "?"})
+    void validate_variousSpecialCharacters_areAccepted(String specialChar) {
+        String password = "Ab1defg" + specialChar;
+
+        List<String> result = validator.validate(password);
+
+        assertTrue(result.isEmpty());
+    }
     // isValid:
     // TODO 11: isValid("Abcdef1!") is true
     // TODO 12: isValid("abc") is false
     // TODO 13: isValid(null) is false
+    @Test
+    void validate_isValid() {
+        assertAll(
+                () -> assertTrue(validator.isValid("Abcdef1!")),
+                () -> assertFalse(validator.isValid("abc")),
+                () -> assertFalse(validator.isValid(null))
+        );
+    }
 }
